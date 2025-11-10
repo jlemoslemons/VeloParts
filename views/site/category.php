@@ -1,19 +1,12 @@
-<?php $this->layout('layouts/site', ['title' => 'Home']) ?>
+<?php $this->layout('layouts/site', ['title' => 'Categoria: ' . $category['name']]) ?>
 
 <?php $this->start('body') ?>
 
-<div class="p-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold">Bem-vindo à AutoParts</h1>
-        <p class="col-md-8 fs-4">As melhores peças para o seu veículo, com a melhor qualidade e preço.</p>
-    </div>
-</div>
-
-<h2>Peças Recentes</h2>
+<h1>Categoria: <?= $this->e($category['name']) ?></h1>
 <hr>
 <div class="row row-cols-1 row-cols-md-4 g-4">
     <?php if (empty($products)): ?>
-        <p>Nenhum produto cadastrado ainda.</p>
+        <p>Nenhum produto encontrado nesta categoria.</p>
     <?php endif; ?>
     
     <?php foreach ($products as $product): ?>
@@ -27,7 +20,7 @@
                 <p class="card-text fw-bold fs-5 text-success">
                     R$ <?= number_format((float)$product['price'], 2, ',', '.') ?>
                 </p>
-                <?php if ($product['stock'] <= 0): ?>
+                 <?php if ($product['stock'] <= 0): ?>
                      <span class="badge bg-danger">Indisponível</span>
                 <?php else: ?>
                      <span class="badge bg-info">Estoque: <?= $product['stock'] ?></span>

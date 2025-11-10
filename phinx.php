@@ -19,7 +19,7 @@ return [
         'dev' => [
             'adapter' => $_ENV['DB_DRIVER'] ?? 'mysql',
             'host' => $_ENV['DB_HOST'] ?? '127.0.0.1',
-            'name' => $_ENV['DB_NAME'] ?? 'crud_php',
+            'name' => $_ENV['DB_NAME'] ?? 'autoparts_db',
             'user' => $_ENV['DB_USER'] ?? 'root',
             'pass' => $_ENV['DB_PASS'] ?? '',
             'port' => (int)($_ENV['DB_PORT'] ?? 3306),
