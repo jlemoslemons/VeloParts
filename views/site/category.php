@@ -34,4 +34,4 @@
     <?php endforeach; ?>
 </div>
 
-<?php $this->stop() ?>
+<?php $this->stop() ?>  
