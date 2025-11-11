@@ -9,14 +9,14 @@ class CategoryService {
         $name = trim($data['name'] ?? '');
     
         if ($name === '') $errors['name'] = 'Nome é obrigatório';
+        if (strlen($name) > 100) $errors['name'] = 'Nome muito longo (máx 100).';
 
         return $errors;
     }
 
     public function make(array $data): Category {
         $name = trim($data['name'] ?? '');
-        $text = trim($data['text'] ?? '');
         $id = isset($data['id']) ? (int)$data['id'] : null;
-        return new Category($id, $name, $text);
+        return new Category($id, $name);
     }
 }
