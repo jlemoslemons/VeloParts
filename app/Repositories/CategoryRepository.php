@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories;
 
 use App\Core\Database;
@@ -7,8 +8,6 @@ use PDO;
 
 class CategoryRepository
 {
-    // ... (countAll, paginate, find - idênticos) ...
-
     public function countAll(): int
     {
         $stmt = Database::getConnection()->query("SELECT COUNT(*) FROM categories");
@@ -35,15 +34,15 @@ class CategoryRepository
 
     public function create(Category $category): int
     {
-        $stmt = Database::getConnection()->prepare("INSERT INTO categories (name) VALUES (?)");
-        $stmt->execute([$category->name]);
+        $stmt = Database::getConnection()->prepare("INSERT INTO categories (name, text) VALUES (?, ?)");
+        $stmt->execute([$category->name, $category->text]);
         return (int)Database::getConnection()->lastInsertId();
     }
 
     public function update(Category $category): bool
     {
-        $stmt = Database::getConnection()->prepare("UPDATE categories SET name = ? WHERE id = ?");
-        return $stmt->execute([$category->name, $category->id]);
+        $stmt = Database::getConnection()->prepare("UPDATE categories SET name = ?, text = ? WHERE id = ?");
+        return $stmt->execute([$category->name, $category->text, $category->id]);
     }
 
     public function delete(int $id): bool
@@ -54,7 +53,7 @@ class CategoryRepository
 
     public function findAll(): array
     {
-        $stmt = Database::getConnection()->prepare("SELECT * FROM categories ORDER BY name ASC");
+        $stmt = Database::getConnection()->prepare("SELECT * FROM categories ORDER BY id DESC");
         $stmt->execute();
         return $stmt->fetchAll();
     }
