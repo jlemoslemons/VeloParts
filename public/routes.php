@@ -4,6 +4,8 @@ use App\Controllers\Admin\AdminController;
 use App\Controllers\Admin\CategoryController;
 use App\Controllers\Admin\ProductController;
 use App\Controllers\Admin\UserController;
+use App\Controllers\Admin\OrderController;
+use App\Controllers\Admin\OrderItemController;
 use App\Controllers\AuthController;
 use App\Controllers\SiteController;
 use App\Middleware\AuthMiddleware;
@@ -57,9 +59,27 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $rou
             $users->addRoute('GET', '/create', [UserController::class, 'create']);
             $users->addRoute('POST', '/store', [UserController::class, 'store']);
             $users->addRoute('GET', '/show', [UserController::class, 'show']);
-//            $users->addRoute('GET', '/edit', [UserController::class, 'edit']);
-//            $users->addRoute('POST', '/update', [UserController::class, 'update']);
+            //            $users->addRoute('GET', '/edit', [UserController::class, 'edit']);
+            //            $users->addRoute('POST', '/update', [UserController::class, 'update']);
             $users->addRoute('POST', '/delete', [UserController::class, 'delete']);
+        });
+        
+        // Pedidos 
+        $group->addGroup('/orders', function (FastRoute\RouteCollector $orders) {
+            $orders->addRoute('GET', '', [OrderController::class, 'index']);
+            $orders->addRoute('GET', '/create', [OrderController::class, 'create']);
+            $orders->addRoute('POST', '/store', [OrderController::class, 'store']);
+            $orders->addRoute('GET', '/show', [OrderController::class, 'show']);
+            $orders->addRoute('POST', '/delete', [OrderController::class, 'delete']);
+        });
+
+        // Itens de Pedido 
+        $group->addGroup('/order-items', function (FastRoute\RouteCollector $orderItems) {
+            $orderItems->addRoute('GET', '', [OrderItemController::class, 'index']);
+            $orderItems->addRoute('GET', '/create', [OrderItemController::class, 'create']);
+            $orderItems->addRoute('POST', '/store', [OrderItemController::class, 'store']);
+            $orderItems->addRoute('GET', '/show', [OrderItemController::class, 'show']);
+            $orderItems->addRoute('POST', '/delete', [OrderItemController::class, 'delete']);
         });
     });
 });
@@ -94,7 +114,10 @@ switch ($routeInfo[0]) {
         foreach ($protectedRoutes as $prefix) {
             if (str_starts_with($uri, $prefix)) {
                 $redirect = AuthMiddleware::requireLogin();
-                if ($redirect) { $redirect->send(); exit; }
+                if ($redirect) {
+                    $redirect->send();
+                    exit;
+                }
                 break;
             }
         }
