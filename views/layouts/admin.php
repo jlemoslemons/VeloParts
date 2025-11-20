@@ -7,6 +7,7 @@ $auth = AuthService::user();
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -147,102 +148,102 @@ $auth = AuthService::user();
         }
     </style>
 </head>
+
 <body>
 
-<!-- Dashboard Screen -->
-<div id="dashboardScreen">
-    <!-- Header -->
-    <nav class="header navbar navbar-dark">
-        <div class="container-fluid">
-            <button class="btn btn-link text-white" id="menuToggle">
-                <i class="bi bi-list fs-4"></i>
-            </button>
-            <span class="navbar-brand mb-0 h1"><?= $this->e($title ?? 'CRUD') ?> - Painel Administrativo</span>
-            <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="user-avatar"><?= strtoupper(substr($auth['name'], 0, 2)) ?></div>
-                    <span id="usernameDisplay"><?= $this->e($auth['name']) ?></span>
+    <!-- Dashboard Screen -->
+    <div id="dashboardScreen">
+        <!-- Header -->
+        <nav class="header navbar navbar-dark">
+            <div class="container-fluid">
+                <button class="btn btn-link text-white" id="menuToggle">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <span class="navbar-brand mb-0 h1"><?= $this->e($title ?? 'CRUD') ?> - Painel Administrativo</span>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="user-avatar"><?= strtoupper(substr($auth['name'], 0, 2)) ?></div>
+                        <span id="usernameDisplay"><?= $this->e($auth['name']) ?></span>
+                    </div>
+                    <form class="d-inline" method="post" action="/auth/logout">
+                        <?= \App\Core\Csrf::input() ?>
+                        <button class="btn btn-outline-light btn-sm" id="btnLogout">
+                            <i class="bi bi-box-arrow-right"></i> Sair
+                        </button>
+                    </form>
                 </div>
-                <form class="d-inline" method="post" action="/auth/logout">
-                    <?= \App\Core\Csrf::input() ?>
-                    <button class="btn btn-outline-light btn-sm" id="btnLogout">
-                        <i class="bi bi-box-arrow-right"></i> Sair
-                    </button>
-                </form>
             </div>
-        </div>
-    </nav>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <nav class="nav flex-column">
-            <a class="nav-link active" href="/admin" data-page="dashboard">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-            <a class="nav-link" href="/admin/users" data-page="users">
-                <i class="bi bi-people"></i>
-                <span>Usuários</span>
-            </a>
-            <a class="nav-link" href="/admin/products" data-page="products">
-                <i class="bi bi-box-seam"></i>
-                <span>Produtos</span>
-            </a>
-            <a class="nav-link" href="/admin/categories" data-page="categories">
-                <i class="bi bi-box-seam"></i>
-                <span>Categorias</span>
-            </a>
         </nav>
-    </aside>
 
-    <!-- Main Content -->
-    <main class="main-content" id="mainContent">
+        <aside class="sidebar" id="sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="/admin" data-page="dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-link" href="/admin/users" data-page="users">
+                    <i class="bi bi-people"></i>
+                    <span>Usuários</span>
+                </a>
+                <a class="nav-link" href="/admin/products" data-page="products">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Produtos</span>
+                </a>
+                <a class="nav-link" href="/admin/categories" data-page="categories">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Categorias</span>
+                </a>
 
-        <div class="mb-4">
-            <h1 class="h2 fw-bold" id="pageTitle"><?= $this->e($title ?? '') ?></h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
-                    <li class="breadcrumb-item active" aria-current="page"><?= $this->e($title ?? '') ?></li>
-                </ol>
+                <a class="nav-link" href="/admin/orders" data-page="orders">
+                    <i class="bi bi-cart"></i>
+                    <span>Pedidos</span>
+                </a>
+                </li>
             </nav>
-        </div>
+        </aside>
 
-        <!-- Table View -->
-        <?php $this->insert('partials/admin/flash') ?>
-        <?= $this->section('body') ?>
-    </main>
+        <main class="main-content" id="mainContent">
 
-    <!-- Footer -->
-    <footer class="footer" id="footer">
-        <p class="mb-0">&copy; 2025 Painel Administrativo. Todos os direitos reservados.</p>
-    </footer>
-</div>
+            <div class="mb-4">
+                <h1 class="h2 fw-bold" id="pageTitle"><?= $this->e($title ?? '') ?></h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?= $this->e($title ?? '') ?></li>
+                    </ol>
+                </nav>
+            </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+            <?php $this->insert('partials/admin/flash') ?>
+            <?= $this->section('body') ?>
+        </main>
 
-<script>
-    // Toggle sidebar
-    menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        mainContent.classList.toggle('expanded');
-        footer.classList.toggle('expanded');
+        <footer class="footer" id="footer">
+            <p class="mb-0">&copy; 2025 Painel Administrativo. Todos os direitos reservados.</p>
+        </footer>
+    </div>
 
-        // For mobile
-        if (window.innerWidth <= 768) {
-            sidebar.classList.toggle('mobile-open');
-        }
-    });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    // Close sidebar on mobile when clicking outside
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768) {
-            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                sidebar.classList.remove('mobile-open');
+    <script>
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            footer.classList.toggle('expanded');
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-open');
             }
-        }
-    });
-</script>
+        });
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>

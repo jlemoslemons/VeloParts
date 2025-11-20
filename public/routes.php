@@ -59,8 +59,8 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $rou
             $users->addRoute('GET', '/create', [UserController::class, 'create']);
             $users->addRoute('POST', '/store', [UserController::class, 'store']);
             $users->addRoute('GET', '/show', [UserController::class, 'show']);
-            //            $users->addRoute('GET', '/edit', [UserController::class, 'edit']);
-            //            $users->addRoute('POST', '/update', [UserController::class, 'update']);
+            // $users->addRoute('GET', '/edit', [UserController::class, 'edit']);
+            // $users->addRoute('POST', '/update', [UserController::class, 'update']);
             $users->addRoute('POST', '/delete', [UserController::class, 'delete']);
         });
         
@@ -71,9 +71,15 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $rou
             $orders->addRoute('POST', '/store', [OrderController::class, 'store']);
             $orders->addRoute('GET', '/show', [OrderController::class, 'show']);
             $orders->addRoute('POST', '/delete', [OrderController::class, 'delete']);
+            
+            // ESSENCIAL: Rota para atualizar o status (Adicionada para não quebrar a tela Show)
+            $orders->addRoute('POST', '/update-status', [OrderController::class, 'updateStatus']);
         });
 
         // Itens de Pedido 
+        // Atenção: Ajustei para 'orders-items' (plural) se for o que você usou nos forms, 
+        // mas mantive 'order-items' (singular) conforme seu pedido.
+        // Se der erro 404 ao adicionar item, verifique se o form action bate com essa URL.
         $group->addGroup('/order-items', function (FastRoute\RouteCollector $orderItems) {
             $orderItems->addRoute('GET', '', [OrderItemController::class, 'index']);
             $orderItems->addRoute('GET', '/create', [OrderItemController::class, 'create']);
@@ -95,11 +101,11 @@ $request = Request::createFromGlobals();
 switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::NOT_FOUND:
         http_response_code(404);
-        echo '404';
+        echo '404 - Página não encontrada';
         break;
     case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
         http_response_code(405);
-        echo '405';
+        echo '405 - Método não permitido';
         break;
     case FastRoute\Dispatcher::FOUND:
         [$class, $method] = $routeInfo[1];
@@ -112,13 +118,25 @@ switch ($routeInfo[0]) {
 
         // Se a rota começar com alguma dessas, exige login
         foreach ($protectedRoutes as $prefix) {
-            if (str_starts_with($uri, $prefix)) {
-                $redirect = AuthMiddleware::requireLogin();
-                if ($redirect) {
-                    $redirect->send();
-                    exit;
+            // Polyfill para PHP < 8.0 se necessário, mas idealmente use PHP 8
+            if (function_exists('str_starts_with')) {
+                if (str_starts_with($uri, $prefix)) {
+                    $redirect = AuthMiddleware::requireLogin();
+                    if ($redirect) {
+                        $redirect->send();
+                        exit;
+                    }
+                    break;
                 }
-                break;
+            } else {
+                if (strncmp($uri, $prefix, strlen($prefix)) === 0) {
+                    $redirect = AuthMiddleware::requireLogin();
+                    if ($redirect) {
+                        $redirect->send();
+                        exit;
+                    }
+                    break;
+                }
             }
         }
 
