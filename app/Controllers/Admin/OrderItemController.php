@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Csrf;
 use App\Core\View;
+use App\Models\Order;
 use App\Repositories\OrderItemRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\ProductRepository;
@@ -32,11 +33,12 @@ class OrderItemController
     public function index(Request $request): Response
     {
         $page = max(1, (int)$request->query->get('page', 1));
-        $perPage = 5;
+        $perPage = 10;
         $total = $this->repo->countAll();
         $orderItems = $this->repo->paginate($page, $perPage);
         $pages = (int)ceil($total / $perPage);
-        $html = $this->view->render('admin/order_items/index', compact('orderItems', 'page', 'pages'));
+
+        $html = $this->view->render('admin/ordersItems/index', compact('orderItems', 'page', 'pages'));
         return new Response($html);
     }
 
@@ -44,44 +46,115 @@ class OrderItemController
     {
         $orders = $this->orderRepo->findAll();
         $products = $this->productRepo->findAll();
-        $html = $this->view->render('admin/order_items/create', ['csrf' => Csrf::token(), 'errors' => [], 'orders' => $orders, 'products' => $products]);
+        
+        $html = $this->view->render('admin/ordersItems/create', [
+            'csrf' => Csrf::token(), 
+            'errors' => [], 
+            'orders' => $orders, 
+            'products' => $products
+        ]);
         return new Response($html);
     }
 
     public function store(Request $request): Response
     {
-        if (!Csrf::validate($request->request->get('_csrf'))) 
+        if (!Csrf::validate($request->request->get('_csrf'))) {
             return new Response('Token CSRF inválido', 419);
+        }
         
-        $errors = $this->service->validate($request->request->all());
+        $data = $request->request->all(); // Pega todos os dados
+        $errors = $this->service->validate($data);
+        
+        // 1. Verificar se o produto existe e buscar o preço
+        $product = $this->productRepo->find((int)$data['product_id']);
+        if (!$product) {
+            $errors['product_id'] = 'Produto não encontrado.';
+        }
+        
         if ($errors) {
             $orders = $this->orderRepo->findAll();
             $products = $this->productRepo->findAll();
-            $html = $this->view->render('admin/order_items/create', ['csrf' => Csrf::token(), 'errors' => $errors, 'old' => $request->request->all(), 'orders' => $orders, 'products' => $products]);
+            
+            $html = $this->view->render('admin/ordersItems/create', [
+                'csrf' => Csrf::token(), 
+                'errors' => $errors, 
+                'old' => $data, 
+                'orders' => $orders, 
+                'products' => $products
+            ]);
             return new Response($html, 422);
         }
         
-        $orderItem = $this->service->make($request->request->all());
-        $id = $this->repo->create($orderItem);
-        return new RedirectResponse('/admin/order-items/show?id=' . $id);
+        // 2. Injeta o preço do produto no array de dados (sobrescrevendo o que vier do formulário)
+        $data['unit_price'] = (float)$product['price'];
+
+        $orderItem = $this->service->make($data);
+        $this->repo->create($orderItem);
+
+        $this->updateOrderTotal($orderItem->order_id);
+        
+        return new RedirectResponse('/admin/orders/show?id=' . $orderItem->order_id);
     }
 
     public function show(Request $request): Response
     {
         $id = (int)$request->query->get('id', 0);
         $orderItem = $this->repo->find($id);
-        if (!$orderItem) return new Response('Item do pedido não encontrado', 404);
-        $html = $this->view->render('admin/order_items/show', ['orderItem' => $orderItem]);
+        
+        if (!$orderItem) {
+            return new Response('Item do pedido não encontrado', 404);
+        }
+        
+        $html = $this->view->render('admin/ordersItems/show', ['orderItem' => $orderItem]);
         return new Response($html);
     }
 
     public function delete(Request $request): Response
     {
-        if (!Csrf::validate($request->request->get('_csrf'))) 
+        if (!Csrf::validate($request->request->get('_csrf'))) {
             return new Response('Token CSRF inválido', 419);
+        }
         
         $id = (int)$request->request->get('id', 0);
-        if ($id > 0) $this->repo->delete($id);
-        return new RedirectResponse('/admin/order-items');
+        
+        $item = $this->repo->find($id);
+        $orderId = $item ? $item['order_id'] : null;
+
+        if ($id > 0) {
+            $this->repo->delete($id);
+        }
+
+        if ($orderId) {
+            $this->updateOrderTotal($orderId);
+            return new RedirectResponse('/admin/orders/show?id=' . $orderId);
+        }
+        
+        return new RedirectResponse('/admin/orders');
+    }
+
+    private function updateOrderTotal(int $orderId): void
+    {
+        $orderData = $this->orderRepo->find($orderId);
+        if (!$orderData) return;
+
+        $items = $this->repo->findByOrderId($orderId);
+
+        $newTotal = 0.0;
+        foreach ($items as $item) {
+            // Garante o casting explícito para floats
+            $quantity = (float)$item['quantity'];
+            $unitPrice = (float)$item['unit_price'];
+            $newTotal += ($quantity * $unitPrice);
+        }
+
+        $order = new Order(
+            (int)$orderData['order_id'],
+            (int)$orderData['user_id'],
+            $orderData['order_date'],
+            $orderData['status'],
+            $newTotal
+        );
+
+        $this->orderRepo->update($order);
     }
 }
